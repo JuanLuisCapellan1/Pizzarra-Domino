@@ -1,5 +1,7 @@
 # DominoApuntes
 
+> **Propiedad exclusiva de Juan Luis Capellán Aramboles. Todos los derechos reservados.**
+
 Aplicación móvil para llevar la puntuación y el registro de partidas de dominó. Desarrollada con React Native y Expo (managed workflow).
 
 ---
