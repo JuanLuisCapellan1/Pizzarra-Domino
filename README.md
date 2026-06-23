@@ -1,4 +1,4 @@
-# DominoApuntes
+# Pizarra Dominó
 
 > **Propiedad exclusiva de Juan Luis Capellán Aramboles. Todos los derechos reservados.**
 
@@ -49,7 +49,7 @@ La app tiene la **New Architecture habilitada** (`newArchEnabled: true`) y corre
 ## Estructura del Proyecto
 
 ```
-DominoApuntes/
+PizarraDomino/
 ├── App.js                        # Router de 3 pantallas (sin librería de navegación)
 ├── app.json                      # Configuración Expo
 ├── eas.json                      # Perfiles de EAS Build y Submit
