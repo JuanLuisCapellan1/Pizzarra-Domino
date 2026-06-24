@@ -21,7 +21,15 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.juanluiscapellan.DominoApuntes",
-      "versionCode": 1
+      "versionCode": 1,
+      "permissions": [],
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.VIBRATE",
+        "com.android.vending.CHECK_LICENSE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
