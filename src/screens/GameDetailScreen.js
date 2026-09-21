@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,13 +7,43 @@ import {
   FlatList,
   Modal,
   Share,
+  BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import Icon from '../components/Icon';
-import { COLORS } from '../constants/theme';
+import { COLORS, HIT_SLOP } from '../constants/theme';
 import { useHistory } from '../store/historyStore';
 import { gameFinal, gameWinner, formatTime, formatDateLong } from '../utils/gameHelpers';
+
+const roundKeyExtractor = (item, index) =>
+  `${index}-${item.team}-${item.points}-${item.after.A}-${item.after.B}`;
+
+function RoundRow({ item, index, teamA, teamB }) {
+  const isA = item.team === 'A';
+  return (
+    <View style={styles.roundRow}>
+      <Text style={styles.roundNum}>{String(index + 1).padStart(2, '0')}</Text>
+      <View style={styles.roundTeam}>
+        <View
+          style={[styles.dot, { backgroundColor: isA ? COLORS.primary : COLORS.secondary }]}
+        />
+        <Text style={styles.roundTeamText}>{(isA ? teamA : teamB).toUpperCase()}</Text>
+      </View>
+      <Text style={[styles.roundPts, { color: isA ? COLORS.primary : COLORS.secondary }]}>
+        +{item.points}
+      </Text>
+      <View style={styles.roundRunning}>
+        <Text style={[styles.runningNum, { color: isA ? COLORS.primary : COLORS.textMuted }]}>
+          {item.after.A}
+        </Text>
+        <Text style={styles.runningSep}>·</Text>
+        <Text style={[styles.runningNum, { color: !isA ? COLORS.secondary : COLORS.textMuted }]}>
+          {item.after.B}
+        </Text>
+      </View>
+    </View>
+  );
+}
 
 export default function GameDetailScreen({ game, onBack }) {
   const { removeGame } = useHistory();
@@ -40,19 +70,36 @@ export default function GameDetailScreen({ game, onBack }) {
     onBack();
   };
 
+  const renderRound = useCallback(
+    ({ item, index }) => (
+      <RoundRow item={item} index={index} teamA={game.teamA} teamB={game.teamB} />
+    ),
+    [game.teamA, game.teamB]
+  );
+
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (confirmVisible) {
+        setConfirmVisible(false);
+        return true;
+      }
+      onBack();
+      return true;
+    });
+    return () => sub.remove();
+  }, [confirmVisible, onBack]);
+
   const winnerName = winner === 'A' ? game.teamA : game.teamB;
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <StatusBar style="light" />
-
       <View style={styles.header}>
         <TouchableOpacity
           onPress={onBack}
           style={styles.iconBtn}
           accessibilityRole="button"
           accessibilityLabel="Volver"
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          hitSlop={HIT_SLOP}
         >
           <Icon name="chevron-back" size={26} color={COLORS.text} />
         </TouchableOpacity>
@@ -62,7 +109,7 @@ export default function GameDetailScreen({ game, onBack }) {
           style={styles.iconBtn}
           accessibilityRole="button"
           accessibilityLabel="Compartir"
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          hitSlop={HIT_SLOP}
         >
           <Icon name="share-outline" size={20} color={COLORS.text} />
         </TouchableOpacity>
@@ -70,54 +117,8 @@ export default function GameDetailScreen({ game, onBack }) {
 
       <FlatList
         data={game.rounds}
-        keyExtractor={(_, i) => `r-${i}`}
-        renderItem={({ item, index }) => (
-          <View style={styles.roundRow}>
-            <Text style={styles.roundNum}>{String(index + 1).padStart(2, '0')}</Text>
-            <View style={styles.roundTeam}>
-              <View
-                style={[
-                  styles.dot,
-                  { backgroundColor: item.team === 'A' ? COLORS.primary : COLORS.secondary },
-                ]}
-              />
-              <Text style={styles.roundTeamText}>
-                {(item.team === 'A' ? game.teamA : game.teamB).toUpperCase()}
-              </Text>
-            </View>
-            <Text
-              style={[
-                styles.roundPts,
-                { color: item.team === 'A' ? COLORS.primary : COLORS.secondary },
-              ]}
-            >
-              +{item.points}
-            </Text>
-            <View style={styles.roundRunning}>
-              <Text
-                style={[
-                  styles.runningNum,
-                  {
-                    color: item.team === 'A' ? COLORS.primary : COLORS.textMuted,
-                  },
-                ]}
-              >
-                {item.after.A}
-              </Text>
-              <Text style={styles.runningSep}>·</Text>
-              <Text
-                style={[
-                  styles.runningNum,
-                  {
-                    color: item.team === 'B' ? COLORS.secondary : COLORS.textMuted,
-                  },
-                ]}
-              >
-                {item.after.B}
-              </Text>
-            </View>
-          </View>
-        )}
+        keyExtractor={roundKeyExtractor}
+        renderItem={renderRound}
         ListHeaderComponent={
           <View>
             <View style={styles.summaryMeta}>

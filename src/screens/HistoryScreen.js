@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,11 +7,11 @@ import {
   TextInput,
   SectionList,
   ScrollView,
+  BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import Icon from '../components/Icon';
-import { COLORS } from '../constants/theme';
+import { COLORS, HIT_SLOP } from '../constants/theme';
 import { useHistory } from '../store/historyStore';
 import { gameWinner, groupGames } from '../utils/gameHelpers';
 import GameCard from '../components/GameCard';
@@ -68,17 +68,23 @@ export default function HistoryScreen({ onBack, onOpenGame }) {
     []
   );
 
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      onBack();
+      return true;
+    });
+    return () => sub.remove();
+  }, [onBack]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <StatusBar style="light" />
-
       <View style={styles.header}>
         <TouchableOpacity
           onPress={onBack}
           style={styles.backBtn}
           accessibilityRole="button"
           accessibilityLabel="Volver"
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          hitSlop={HIT_SLOP}
         >
           <Icon name="chevron-back" size={26} color={COLORS.text} />
         </TouchableOpacity>
@@ -99,7 +105,7 @@ export default function HistoryScreen({ onBack, onOpenGame }) {
           returnKeyType="search"
         />
         {query.length > 0 && (
-          <TouchableOpacity onPress={() => setQuery('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <TouchableOpacity onPress={() => setQuery('')} hitSlop={HIT_SLOP}>
             <Icon name="close-circle" size={16} color={COLORS.textMuted} />
           </TouchableOpacity>
         )}

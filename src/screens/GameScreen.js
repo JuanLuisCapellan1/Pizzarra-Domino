@@ -12,17 +12,16 @@ import {
   Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import Icon from '../components/Icon';
 import HistoryEntryRow from '../components/HistoryEntryRow';
-import { COLORS, SIZES } from '../constants/theme';
-import { useHistory } from '../store/historyStore';
+import { COLORS, HIT_SLOP, SIZES } from '../constants/theme';
+import { useAddGame } from '../store/historyStore';
 import { buildRoundsFromEntries } from '../utils/gameHelpers';
 
-const QUICK_VALUES = [25, 50, 75];
+const QUICK_VALUES = [25, 30, 60];
 
 export default function GameScreen({ onOpenHistory }) {
-  const { addGame } = useHistory();
+  const { addGame } = useAddGame();
 
   const [limit, setLimit] = useState(200);
   const [nameA, setNameA] = useState('NOSOTROS');
@@ -218,8 +217,6 @@ export default function GameScreen({ onOpenHistory }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
-
       {/* TOP BAR */}
       <View style={styles.topBar}>
         <TouchableOpacity style={styles.limitBtn} onPress={() => openEdit('limit', limit)}>
@@ -233,7 +230,7 @@ export default function GameScreen({ onOpenHistory }) {
             style={styles.topIconBtn}
             accessibilityRole="button"
             accessibilityLabel="Historial"
-            hitSlop={HITSLOP_8}
+            hitSlop={HIT_SLOP}
           >
             <Icon name="time-outline" size={22} color={COLORS.textDim} />
           </TouchableOpacity>
@@ -241,7 +238,7 @@ export default function GameScreen({ onOpenHistory }) {
             onPress={() => setResetModalVisible(true)}
             accessibilityRole="button"
             accessibilityLabel="Reiniciar"
-            hitSlop={HITSLOP_8}
+            hitSlop={HIT_SLOP}
           >
             <Icon name="refresh-circle" size={30} color={COLORS.textDim} />
           </TouchableOpacity>
@@ -425,7 +422,12 @@ export default function GameScreen({ onOpenHistory }) {
       </Modal>
 
       {/* VICTORIA */}
-      <Modal visible={victoryModalVisible} transparent animationType="slide">
+      <Modal
+        visible={victoryModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setVictoryModalVisible(false)}
+      >
         <View style={styles.modalOverlayCenter}>
           <View style={[styles.dialogCard, { borderColor: COLORS.accent, borderWidth: 1 }]}>
             <Text style={styles.winnerLabel}>¡VICTORIA!</Text>
@@ -494,7 +496,6 @@ export default function GameScreen({ onOpenHistory }) {
   );
 }
 
-const HITSLOP_8 = { top: 8, bottom: 8, left: 8, right: 8 };
 const KEY_EXTRACTOR = (item) => item.id;
 
 function EmptyList() {

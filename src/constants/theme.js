@@ -30,3 +30,6 @@ export const SIZES = {
   radius: 12,
   icon: 24,
 };
+
+// Expande botones de barra (~38–40pt) por encima del mínimo de 44pt.
+export const HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };

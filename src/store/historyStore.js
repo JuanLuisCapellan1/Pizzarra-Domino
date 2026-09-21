@@ -22,6 +22,14 @@ const applyUpdate = (nextGames) => {
   emit();
 };
 
+const persist = async (next) => {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    // En producción registraríamos esto en un logger; aquí lo silenciamos.
+  }
+};
+
 const ensureLoaded = async () => {
   if (loadedCache) return;
   if (loadPromise) return loadPromise;
@@ -47,8 +55,22 @@ const ensureLoaded = async () => {
   return loadPromise;
 };
 
-// Hook minimal para gestionar el historial persistente de partidas.
-// Carga al montar, persiste cada cambio. Sin librería externa para mantenerlo simple.
+// Guarda una partida sin forzar lectura de AsyncStorage al montar el marcador.
+// La carga ocurre en el primer guardado (o si Historial ya cargó el store).
+export function useAddGame() {
+  const addGame = useCallback((game) => {
+    void (async () => {
+      await ensureLoaded();
+      const next = [game, ...gamesCache].slice(0, MAX_GAMES);
+      applyUpdate(next);
+      await persist(next);
+    })();
+  }, []);
+
+  return { addGame };
+}
+
+// Hook para pantallas que muestran el historial. Carga al montar.
 export function useHistory() {
   const [games, setGames] = useState(gamesCache);
   const [loaded, setLoaded] = useState(loadedCache);
@@ -71,36 +93,16 @@ export function useHistory() {
     };
   }, []);
 
-  const persist = useCallback(async (next) => {
-    try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      // En producción registraríamos esto en un logger; aquí lo silenciamos.
-    }
+  const removeGame = useCallback((id) => {
+    const next = gamesCache.filter((g) => g.id !== id);
+    applyUpdate(next);
+    void persist(next);
   }, []);
-
-  const addGame = useCallback(
-    (game) => {
-      const next = [game, ...gamesCache].slice(0, MAX_GAMES);
-      applyUpdate(next);
-      void persist(next);
-    },
-    [persist]
-  );
-
-  const removeGame = useCallback(
-    (id) => {
-      const next = gamesCache.filter((g) => g.id !== id);
-      applyUpdate(next);
-      void persist(next);
-    },
-    [persist]
-  );
 
   const clearAll = useCallback(() => {
     applyUpdate([]);
     void persist([]);
-  }, [persist]);
+  }, []);
 
-  return { games, loaded, addGame, removeGame, clearAll };
+  return { games, loaded, removeGame, clearAll };
 }
