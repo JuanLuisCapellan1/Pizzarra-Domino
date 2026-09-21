@@ -14,6 +14,9 @@ jobs:
     name: Version, Build & Submit
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     # Skip CI commits (version bumps) to avoid infinite loops
     if: "!startsWith(github.event.head_commit.message, 'chore(release):')"
 
