@@ -1,0 +1,27 @@
+{
+  "bumpFiles": [
+    {
+      "filename": "package.json",
+      "type": "json"
+    },
+    {
+      "filename": "app.json",
+      "jsonpath": "$.expo.version",
+      "type": "json"
+    }
+  ],
+  "types": [
+    { "type": "feat", "section": "✨ Features" },
+    { "type": "fix", "section": "🐛 Bug Fixes" },
+    { "type": "perf", "section": "⚡ Performance" },
+    { "type": "refactor", "section": "♻️ Refactoring", "hidden": true },
+    { "type": "docs", "section": "📝 Documentation", "hidden": true },
+    { "type": "style", "hidden": true },
+    { "type": "chore", "hidden": true },
+    { "type": "ci", "hidden": true },
+    { "type": "test", "hidden": true },
+    { "type": "build", "hidden": true }
+  ],
+  "commitUrlFormat": "https://github.com/JuanLuisCapellan1/Pizzarra-Domino/commit/{{hash}}",
+  "compareUrlFormat": "https://github.com/JuanLuisCapellan1/Pizzarra-Domino/compare/{{previousTag}}...{{currentTag}}"
+}

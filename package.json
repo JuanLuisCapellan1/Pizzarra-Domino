@@ -6,7 +6,8 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "release": "commit-and-tag-version"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -26,5 +27,8 @@
         "expo-keep-awake"
       ]
     }
+  },
+  "devDependencies": {
+    "commit-and-tag-version": "^13.2.1"
   }
 }
