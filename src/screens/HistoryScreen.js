@@ -11,9 +11,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../components/Icon';
+import CalendarModal from '../components/CalendarModal';
 import { COLORS, HIT_SLOP } from '../constants/theme';
 import { useHistory } from '../store/historyStore';
-import { gameWinner, groupGames } from '../utils/gameHelpers';
+import { gameWinner, groupGames, groupGamesByDate, formatDateLong } from '../utils/gameHelpers';
 import GameCard from '../components/GameCard';
 
 const keyExtractor = (item) => item.id;
@@ -27,10 +28,24 @@ const FILTERS = [
   { key: '100', label: 'Meta 100' },
 ];
 
+// Formatea la fecha o rango para el chip removible.
+const formatDateChip = (df) => {
+  if (!df) return '';
+  if (df.date) return formatDateLong(df.date);
+  if (df.startDate && df.endDate) {
+    const s = formatDateLong(df.startDate);
+    const e = formatDateLong(df.endDate);
+    return s === e ? s : `${s} – ${e}`;
+  }
+  return '';
+};
+
 export default function HistoryScreen({ onBack, onOpenGame }) {
   const { games, loaded } = useHistory();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('todas');
+  const [dateFilter, setDateFilter] = useState(null);
+  const [calendarVisible, setCalendarVisible] = useState(false);
 
   const sections = useMemo(() => {
     let g = games;
@@ -48,8 +63,32 @@ export default function HistoryScreen({ onBack, onOpenGame }) {
           (x.teamB || '').toLowerCase().includes(q)
       );
     }
-    return groupGames(g);
-  }, [games, query, filter]);
+
+    // Filtro por fecha
+    if (dateFilter) {
+      if (dateFilter.date) {
+        const start = new Date(dateFilter.date);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(dateFilter.date);
+        end.setHours(23, 59, 59, 999);
+        g = g.filter((x) => {
+          const t = typeof x.date === 'number' ? x.date : new Date(x.date).getTime();
+          return t >= start.getTime() && t <= end.getTime();
+        });
+      } else if (dateFilter.startDate && dateFilter.endDate) {
+        const start = new Date(dateFilter.startDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(dateFilter.endDate);
+        end.setHours(23, 59, 59, 999);
+        g = g.filter((x) => {
+          const t = typeof x.date === 'number' ? x.date : new Date(x.date).getTime();
+          return t >= start.getTime() && t <= end.getTime();
+        });
+      }
+    }
+
+    return dateFilter ? groupGamesByDate(g) : groupGames(g);
+  }, [games, query, filter, dateFilter]);
 
   const isEmpty = loaded && sections.length === 0;
   const totalGames = games.length;
@@ -109,7 +148,36 @@ export default function HistoryScreen({ onBack, onOpenGame }) {
             <Icon name="close-circle" size={16} color={COLORS.textMuted} />
           </TouchableOpacity>
         )}
+        <TouchableOpacity
+          onPress={() => setCalendarVisible(true)}
+          hitSlop={HIT_SLOP}
+          accessibilityRole="button"
+          accessibilityLabel="Filtrar por fecha"
+          style={styles.calendarBtn}
+        >
+          <Icon
+            name="calendar-outline"
+            size={18}
+            color={dateFilter ? COLORS.primary : COLORS.textMuted}
+          />
+          {dateFilter && <View style={styles.calendarBadge} />}
+        </TouchableOpacity>
       </View>
+
+      {dateFilter && (
+        <View style={styles.dateChipRow}>
+          <View style={styles.dateChip}>
+            <Icon name="calendar-outline" size={12} color={COLORS.primary} />
+            <Text style={styles.dateChipText}>{formatDateChip(dateFilter)}</Text>
+            <TouchableOpacity
+              onPress={() => setDateFilter(null)}
+              hitSlop={HIT_SLOP}
+            >
+              <Icon name="close-circle" size={14} color={COLORS.primary} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       <View>
         <ScrollView
@@ -166,6 +234,18 @@ export default function HistoryScreen({ onBack, onOpenGame }) {
           windowSize={7}
         />
       )}
+
+      <CalendarModal
+        visible={calendarVisible}
+        onClose={() => setCalendarVisible(false)}
+        onApply={(df) => {
+          setDateFilter(df);
+          setCalendarVisible(false);
+        }}
+        initialDate={dateFilter?.date || null}
+        initialStartDate={dateFilter?.startDate || null}
+        initialEndDate={dateFilter?.endDate || null}
+      />
     </SafeAreaView>
   );
 }
@@ -275,5 +355,39 @@ const styles = StyleSheet.create({
     fontSize: 13.5,
     textAlign: 'center',
     maxWidth: 260,
+  },
+  calendarBtn: {
+    position: 'relative',
+    padding: 2,
+  },
+  calendarBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: COLORS.primary,
+    borderWidth: 1.5,
+    borderColor: COLORS.card,
+  },
+  dateChipRow: {
+    paddingHorizontal: 18,
+    paddingTop: 6,
+  },
+  dateChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    backgroundColor: COLORS.primarySoft,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 100,
+  },
+  dateChipText: {
+    color: COLORS.primary,
+    fontSize: 12,
+    fontWeight: '700',
   },
 });

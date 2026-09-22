@@ -68,6 +68,19 @@ export const groupGames = (games, now = Date.now()) => {
     .map(([title, data]) => ({ title, data }));
 };
 
+// Agrupa partidas por fecha formateada (para cuando hay filtro de fecha activo).
+// En vez de Hoy/Ayer/Esta semana, agrupa por la fecha real del juego.
+export const groupGamesByDate = (games) => {
+  const buckets = {};
+  for (const g of games) {
+    const d = new Date(typeof g.date === 'number' ? g.date : new Date(g.date).getTime());
+    const key = formatDateLong(d);
+    if (!buckets[key]) buckets[key] = [];
+    buckets[key].push(g);
+  }
+  return Object.entries(buckets).map(([title, data]) => ({ title, data }));
+};
+
 // Convierte el historial in-game (entries más reciente primero, con voided)
 // a la forma {rounds:[{team,points,after}]} ordenada cronológicamente.
 // Las jugadas anuladas se excluyen (ya no cuentan en el marcador).

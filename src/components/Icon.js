@@ -92,6 +92,19 @@ const ICONS = {
       <Line x1="21" y1="21" x2="16.5" y2="16.5" />
     </Svg>
   ),
+  'calendar-outline': (p) => (
+    <Svg {...p} viewBox="0 0 24 24" fill="none" stroke={p.color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" />
+      <Line x1="16" y1="2" x2="16" y2="6" />
+      <Line x1="8" y1="2" x2="8" y2="6" />
+      <Line x1="3" y1="10" x2="21" y2="10" />
+    </Svg>
+  ),
+  'chevron-forward': (p) => (
+    <Svg {...p} viewBox="0 0 24 24" fill="none" stroke={p.color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
+      <Polyline points="9 6 15 12 9 18" />
+    </Svg>
+  ),
 };
 
 function Icon({ name, size = 18, color = '#fff', style }) {
